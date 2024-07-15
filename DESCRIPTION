@@ -1,0 +1,18 @@
+Package: scNMF
+Type: Package
+Title: Non-Negative Matrix Factorization for Single-Cell Omics
+Version: 0.1.0
+Authors@R: 
+  person(
+  given = "Jeason",
+  family = "Zhao",
+  role = c("aut", "cre"),
+  email = "z17645797947@gmail.com"
+  )
+Maintainer: Jeason <2055469819@qq.com>
+Description: A collection of methods to extract gene programs from single-cell gene expression data using non-negative matrix factorization (NMF).
+License: CC0
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
