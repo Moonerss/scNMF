@@ -169,7 +169,6 @@ select_top_program_genes <- function(nmf_programs_list, top_n = 50) {
 #' @title Run NMF
 #' @description Run nonnegative matrix factorization (NMF) with matrix
 #' @param mat a numeric matrix with genes in row and cells in column.
-#' @param lognormalize whether log transformed the data, if TRUE, the data will transformed with `log2(x+1)`
 #' @param do_filtering Whether filter the gene by `min_expr` and `min_pct`.
 #' @param min_expr The minum expression of gene expression
 #' @param min_pct The minum precent of cell expression gene greater than `min_expr`.
@@ -186,8 +185,7 @@ select_top_program_genes <- function(nmf_programs_list, top_n = 50) {
 #'
 #' @export
 #'
-nmf_programs <- function(mat, lognormalize = T,
-                         do_filtering = TRUE, min_expr = 3.5, min_pct = 0.2,
+nmf_programs <- function(mat, do_filtering = TRUE, min_expr = 3.5, min_pct = 0.2,
                          center = TRUE, scale = FALSE, non_negative = TRUE,
                          rank = 2, method = "snmf/r", seed = 1, ...) {
   ## log tranformed
@@ -232,27 +230,75 @@ nmf_programs <- function(mat, lognormalize = T,
 }
 
 
-#' Extract data matrix from Seurat object
 #'
-#' Get the gene expression matrix from a Seurat object, optionally centered
-#' and/or subset on highly variable genes
+#' @rdname getDataMatrix
 #'
-#' @param obj Seurat object
-#' @param assay Get data matrix from this assay
-#' @param slot Get data matrix from this slot (=layer)
-#' @param genes List of variable genes to subset the matrix. If NULL, uses all genes
-#' @param center Whether to center the data matrix
-#' @param scale Whether to scale the data matrix
-#' @param non_negative Whether fill the negative value with zero
-#' @param verbose Show more message
+#' @method getDataMatrix Matrix
 #'
-#' @return Returns a sparse data matrix (cells per genes), subset
-#' according to the given parameters
-#'
-#' @importFrom Seurat GetAssayData
 #' @export
 #'
-getDataMatrix <- function(obj, assay = "RNA", slot = "data", genes = NULL, center = TRUE, scale = FALSE, non_negative = TRUE, verbose = TRUE) {
+getDataMatrix.Matrix <- function(obj, genes = NULL, center = TRUE, scale = FALSE, non_negative = TRUE, verbose = TRUE, ...) {
+
+  mat <- obj
+
+  # subset on
+  if (!is.null(genes)) {
+    keep_genes <- intersect(rownames(mat), genes)
+    if (length(keep_genes) == length(genes)) {
+      if (verbose) {cli::cli_alert_info('Keep {.val {length(keep_genes)}} gene{?s}')}
+      mat <- mat[keep_genes, ]
+    } else {
+      if (verbose) {
+        if (length(keep_genes) == 0) {
+          cli::cli_abort('The expression data have no overlap with {.val genes}, please check')
+        }
+        cli::cli_alert_warning('There have {.val {length(genes) - length(keep_genes)}} gene{?s} is not in data')
+        cli::cli_alert_info('Keep {.val {length(keep_genes)}} overlapped gene{?s}')
+        mat <- mat[keep_genes, ]
+      }
+    }
+  }
+
+  # scale data
+  if (verbose) {
+    if (center | scale) {
+      cli::cli_alert_info('Scale data by: center = {.val {center}}; scale = {.val {scale}}')
+    }
+  }
+  if (verbose) {
+    if (non_negative) {
+      cli::cli_alert_info('Replace negative value in data with {.val {0}}')
+    }
+  }
+  mat <- scale_data(mat, center = center, scale = scale, non_negative = non_negative)
+
+  return(mat)
+}
+
+#' @method getDataMatrix matrix
+#' @export
+#'
+getDataMatrix.matrix <- getDataMatrix.Matrix
+
+
+#'
+#' @param assay Get data matrix from this assay
+#' @param slot Get data matrix from this slot (=layer)
+#'
+#' @method getDataMatrix Seurat
+#'
+#' @rdname getDataMatrix
+#'
+#' @importFrom Seurat GetAssayData
+#'
+#' @examples
+#' library(Seurat)
+#' data('pbmc_small')
+#' a <- getDataMatrix(pbmc_small, genes = c('MS4A1', 'TCL1A'),
+#'                    scale = TRUE, center = TRUE, non_negative = TRUE)
+#' @export
+#'
+getDataMatrix.Seurat <- function(obj, assay = "RNA", slot = "data", genes = NULL, center = TRUE, scale = FALSE, non_negative = TRUE, verbose = TRUE, ...) {
 
   if (verbose) {cli::cli_alert_info('Extract data from slot {.val {slot}} in assay {.val {assay}}')}
   mat <- GetAssayData(obj, assay = assay, layer = slot)
@@ -290,4 +336,3 @@ getDataMatrix <- function(obj, assay = "RNA", slot = "data", genes = NULL, cente
 
   return(mat)
 }
-
