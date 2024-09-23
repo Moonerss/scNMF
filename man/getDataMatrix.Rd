@@ -11,6 +11,9 @@ getDataMatrix(obj, ...)
 \method{getDataMatrix}{Matrix}(
   obj,
   genes = NULL,
+  do_filtering = TRUE,
+  min_expr = 3.5,
+  min_pct = 0.2,
   center = TRUE,
   scale = FALSE,
   non_negative = TRUE,
@@ -23,6 +26,9 @@ getDataMatrix(obj, ...)
   assay = "RNA",
   slot = "data",
   genes = NULL,
+  do_filtering = TRUE,
+  min_expr = 3.5,
+  min_pct = 0.2,
   center = TRUE,
   scale = FALSE,
   non_negative = TRUE,
@@ -36,6 +42,12 @@ getDataMatrix(obj, ...)
 \item{\dots}{Further arguments passed to each method}
 
 \item{genes}{List of variable genes to subset the matrix. If NULL, uses all genes}
+
+\item{do_filtering}{Whether filter the gene by \code{min_expr} and \code{min_pct}.}
+
+\item{min_expr}{The minum expression of gene expression}
+
+\item{min_pct}{The minum precent of cell expression gene greater than \code{min_expr}.}
 
 \item{center}{Whether to center the data matrix}
 
@@ -59,6 +71,6 @@ and/or subset on highly variable genes
 \examples{
 library(Seurat)
 data('pbmc_small')
-a <- getDataMatrix(pbmc_small, genes = c('MS4A1', 'TCL1A'),
+a <- getDataMatrix(pbmc_small, genes = c('MS4A1', 'TCL1A'), do_filtering = FALSE,
                    scale = TRUE, center = TRUE, non_negative = TRUE)
 }

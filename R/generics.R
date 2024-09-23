@@ -5,6 +5,9 @@
 #'
 #' @param obj Seurat object or a \code{\link[base]{matrix}}-like object
 #' @param genes List of variable genes to subset the matrix. If NULL, uses all genes
+#' @param do_filtering Whether filter the gene by `min_expr` and `min_pct`.
+#' @param min_expr The minum expression of gene expression
+#' @param min_pct The minum precent of cell expression gene greater than `min_expr`.
 #' @param center Whether to center the data matrix
 #' @param scale Whether to scale the data matrix
 #' @param non_negative Whether fill the negative value with zero
