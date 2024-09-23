@@ -168,40 +168,18 @@ select_top_program_genes <- function(nmf_programs_list, top_n = 50) {
 
 #' @title Run NMF
 #' @description Run nonnegative matrix factorization (NMF) with matrix
-#' @param mat a numeric matrix with genes in row and cells in column.
-#' @param do_filtering Whether filter the gene by `min_expr` and `min_pct`.
-#' @param min_expr The minum expression of gene expression
-#' @param min_pct The minum precent of cell expression gene greater than `min_expr`.
-#' @param center Whether to center the data matrix
-#' @param scale Whether to scale the data matrix
-#' @param non_negative Whether fill the negative value with zero
+#' @param mat a properly matrix data as input for \code{\link[NMF]{nmf}}, you can get it through \code{\link[scNMF]{getDataMatrix}}.
 #' @param rank specification of the factorization rank. Here it must be a single numeric value.
 #' @param method specification of the NMF algorithm.
 #' @param seed specification of the starting point or seeding method.
-#' @param ... Other argument in `nmf` function.
+#' @param ... Other argument in \code{\link[NMF]{nmf}} function.
 #'
 #' @importFrom NMF nmf basis coef
 #' @return return a list contain w and h matrix of NMF.
 #'
 #' @export
 #'
-nmf_programs <- function(mat, do_filtering = TRUE, min_expr = 3.5, min_pct = 0.2,
-                         center = TRUE, scale = FALSE, non_negative = TRUE,
-                         rank = 2, method = "snmf/r", seed = 1, ...) {
-  ## log tranformed
-  if (lognormalize) {
-    cli::cli_alert_info("Log tranformed data by `log2(x + 1)`")
-    new_mat <- log2(mat + 1)
-  } else {
-    new_mat <- mat
-  }
-  ## filter genes with low expression
-  if (do_filtering) {
-    cli::cli_alert_info("Filter genes expression with minum value {.val {min_expr}} less than {.val {min_pct * 100}}% cells")
-    new_mat <- filter_genes(new_mat, min_expr = min_expr, min_pct = min_pct)
-  }
-  ## center data
-  new_mat <- scale_data(new_mat, center = center, scale = scale, non_negative = non_negative)
+nmf_programs <- function(mat, rank = 2, method = "snmf/r", seed = 1, ...) {
   ## run nmf
   nmf_res <- nmf(new_mat, rank = rank, method = method, seed = seed, ...)
   if (length(rank) == 1) {
@@ -237,7 +215,7 @@ nmf_programs <- function(mat, do_filtering = TRUE, min_expr = 3.5, min_pct = 0.2
 #'
 #' @export
 #'
-getDataMatrix.Matrix <- function(obj, genes = NULL, center = TRUE, scale = FALSE, non_negative = TRUE, verbose = TRUE, ...) {
+getDataMatrix.Matrix <- function(obj, genes = NULL, do_filtering = TRUE, min_expr = 3.5, min_pct = 0.2, center = TRUE, scale = FALSE, non_negative = TRUE, verbose = TRUE, ...) {
 
   mat <- obj
 
@@ -257,6 +235,16 @@ getDataMatrix.Matrix <- function(obj, genes = NULL, center = TRUE, scale = FALSE
         mat <- mat[keep_genes, ]
       }
     }
+  }
+
+  ## filter genes with low expression
+  if (do_filtering) {
+    if(verbose) cli::cli_alert_info("Filter genes expression with minum value {.val {min_expr}} less than {.val {min_pct * 100}}% cells")
+    mat <- filter_genes(mat, min_expr = min_expr, min_pct = min_pct)
+    if (nrow(mat) == 0) {
+      cli::cli_abort('There are no gene after filtering, please check ...')
+    }
+    if(verbose) cli::cli_alert_info('Keep {.val {nrow(mat)}} gene{?s}')
   }
 
   # scale data
@@ -294,45 +282,19 @@ getDataMatrix.matrix <- getDataMatrix.Matrix
 #' @examples
 #' library(Seurat)
 #' data('pbmc_small')
-#' a <- getDataMatrix(pbmc_small, genes = c('MS4A1', 'TCL1A'),
+#' a <- getDataMatrix(pbmc_small, genes = c('MS4A1', 'TCL1A'), do_filtering = FALSE,
 #'                    scale = TRUE, center = TRUE, non_negative = TRUE)
 #' @export
 #'
-getDataMatrix.Seurat <- function(obj, assay = "RNA", slot = "data", genes = NULL, center = TRUE, scale = FALSE, non_negative = TRUE, verbose = TRUE, ...) {
+getDataMatrix.Seurat <- function(obj, assay = "RNA", slot = "data", genes = NULL, do_filtering = TRUE, min_expr = 3.5, min_pct = 0.2, center = TRUE, scale = FALSE, non_negative = TRUE, verbose = TRUE, ...) {
 
   if (verbose) {cli::cli_alert_info('Extract data from slot {.val {slot}} in assay {.val {assay}}')}
   mat <- GetAssayData(obj, assay = assay, layer = slot)
 
-  # subset on
-  if (!is.null(genes)) {
-    keep_genes <- intersect(rownames(mat), genes)
-    if (length(keep_genes) == length(genes)) {
-      if (verbose) {cli::cli_alert_info('Keep {.val {length(keep_genes)}} gene{?s}')}
-      mat <- mat[keep_genes, ]
-    } else {
-      if (verbose) {
-        if (length(keep_genes) == 0) {
-          cli::cli_abort('The expression data have no overlap with {.val genes}, please check')
-        }
-        cli::cli_alert_warning('There have {.val {length(genes) - length(keep_genes)}} gene{?s} is not in data')
-        cli::cli_alert_info('Keep {.val {length(keep_genes)}} overlapped gene{?s}')
-        mat <- mat[keep_genes, ]
-      }
-    }
-  }
-
-  # scale data
-  if (verbose) {
-    if (center | scale) {
-      cli::cli_alert_info('Scale data by: center = {.val {center}}; scale = {.val {scale}}')
-    }
-  }
-  if (verbose) {
-    if (non_negative) {
-      cli::cli_alert_info('Replace negative value in data with {.val {0}}')
-    }
-  }
-  mat <- scale_data(mat, center = center, scale = scale, non_negative = non_negative)
+  mat <- getDataMatrix(mat, genes = genes,
+                       do_filtering = do_filtering, min_expr = min_expr, min_pct = min_pct,
+                       center = center, scale = scale,
+                       non_negative = non_negative, verbose = verbose)
 
   return(mat)
 }
