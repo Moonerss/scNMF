@@ -244,6 +244,7 @@ nmf_programs <- function(mat, lognormalize = T,
 #' @param center Whether to center the data matrix
 #' @param scale Whether to scale the data matrix
 #' @param non_negative Whether fill the negative value with zero
+#' @param verbose Show more message
 #'
 #' @return Returns a sparse data matrix (cells per genes), subset
 #' according to the given parameters
@@ -251,13 +252,40 @@ nmf_programs <- function(mat, lognormalize = T,
 #' @importFrom Seurat GetAssayData
 #' @export
 #'
-getDataMatrix <- function(obj, assay = "RNA", slot = "data", genes = NULL, center = TRUE, scale = FALSE, non_negative = TRUE) {
+getDataMatrix <- function(obj, assay = "RNA", slot = "data", genes = NULL, center = TRUE, scale = FALSE, non_negative = TRUE, verbose = TRUE) {
+
+  if (verbose) {cli::cli_alert_info('Extract data from slot {.val {slot}} in assay {.val {assay}}')}
   mat <- GetAssayData(obj, assay = assay, layer = slot)
 
   # subset on
-  if (!is.null(genes)) mat <- mat[genes, ]
+  if (!is.null(genes)) {
+    keep_genes <- intersect(rownames(mat), genes)
+    if (length(keep_genes) == length(genes)) {
+      if (verbose) {cli::cli_alert_info('Keep {.val {length(keep_genes)}} gene{?s}')}
+      mat <- mat[keep_genes, ]
+    } else {
+      if (verbose) {
+        if (length(keep_genes) == 0) {
+          cli::cli_abort('The expression data have no overlap with {.val genes}, please check')
+        }
+        cli::cli_alert_warning('There have {.val {length(genes) - length(keep_genes)}} gene{?s} is not in data')
+        cli::cli_alert_info('Keep {.val {length(keep_genes)}} overlapped gene{?s}')
+        mat <- mat[keep_genes, ]
+      }
+    }
+  }
 
   # scale data
+  if (verbose) {
+    if (center | scale) {
+      cli::cli_alert_info('Scale data by: center = {.val {center}}; scale = {.val {scale}}')
+    }
+  }
+  if (verbose) {
+    if (non_negative) {
+      cli::cli_alert_info('Replace negative value in data with {.val {0}}')
+    }
+  }
   mat <- scale_data(mat, center = center, scale = scale, non_negative = non_negative)
 
   return(mat)
