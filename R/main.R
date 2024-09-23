@@ -143,18 +143,17 @@ select_robust_nmf_program <- function(top_program_genes, intra_min = 0.7, intra_
 }
 
 
-#' @title Select top n gene feature
-#' @description
-#' Select top n gene for each NMF program
+#' @title Select NMF program features
+#' @description Select top n important features for each NMF program
 #'
 #' @param nmf_programs_list a list of object get use \code{nmf_programs()}
-#' @param top_n the number of gene to select from each NMF program
+#' @param top_n the number of features to select from each NMF program by importance
 #'
 #' @return return a list for each object with the selected top n gene of each program
 #'
 #' @export
 #'
-select_top_program_genes <- function(nmf_programs_list, top_n = 50) {
+select_program_features <- function(nmf_programs_list, top_n = 50) {
   genes_w <- lapply(nmf_programs_list, function(x) {
     x$w_basis
   })
