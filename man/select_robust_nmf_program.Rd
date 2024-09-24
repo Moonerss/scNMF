@@ -5,7 +5,7 @@
 \title{select robust program}
 \usage{
 select_robust_nmf_program(
-  top_program_genes,
+  top_program_features,
   intra_min = 0.7,
   intra_max = 0.2,
   inter_filter = T,
@@ -13,7 +13,7 @@ select_robust_nmf_program(
 )
 }
 \arguments{
-\item{top_program_genes}{the object obtained from \code{select_top_program_genes()}}
+\item{top_program_features}{the object obtained from \code{select_program_features}}
 
 \item{intra_min}{minimum percents overlap with a program from the same sample (for selecting robust programs), default 0.7}
 
@@ -24,7 +24,8 @@ select_robust_nmf_program(
 \item{inter_min}{minimum overlap with a program from another sample, default 0.2}
 }
 \value{
-return a list of select nmf rank program for each sample
+return a list of select nmf rank program for each sample. If one sample have
+no robust program, it will be filtered.
 }
 \description{
 Select robust rank program from the NMF result

@@ -18,13 +18,9 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Imports: 
     cli,
-    ggplot2,
     Matrix,
     NMF,
     purrr,
-    reshape2,
-    rlang,
-    scales,
     Seurat,
     stringr,
     viridis

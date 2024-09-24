@@ -7,8 +7,12 @@ add_list_name <- function(list_obj) {
   }
   res <- Map(function(x, y) {
     if (is.vector(x)) {
-      if (is.null(names(x))) {
+      if (length(x == 1) & is.na(x)) {
+        cli::cli_alert_warning('Element {.val {y}} only have one {.val {NA}}, skip ...')
+        x <- NULL
+      } else if (is.null(names(x))) {
         cli::cli_alert_warning('There is no name for element {.val {y}}, skip ...')
+        x <- NULL
       } else {
         if (grepl(y, names(x))) {
           cli::cli_alert_warning('The name contain element name {.val {y}}, skip ...')
@@ -19,18 +23,21 @@ add_list_name <- function(list_obj) {
     } else if (is.data.frame(x) | is.matrix(x)) {
       if (is.null(colnames(x))) {
         cli::cli_alert_warning('There is no column name for element {.val {y}}, skip ...')
+        x <- NULL
       } else {
         if (any(grepl(y, names(x)))) {
-          cli::cli_alert_warning('The name contain element name {.val {y}}, skip ...')
+          cli::cli_alert_info('The name contain element name {.val {y}}, skip ...')
         } else {
           colnames(x) <- paste0(y, '_', colnames(x))
         }
       }
     } else {
       cli::cli_alert_warning('The element {.val {y}} is not vector\\matrix\\data.frame, skip ...')
+      x <- NULL
     }
     return(x)
   }, list_obj, names(list_obj))
+  res[sapply(res, is.null)] <- NULL
   return(res)
 }
 
@@ -80,3 +87,6 @@ get_cell_complexity <- function(mat) {
   complexity <- apply(mat, 2, function(y) length(which(y != 0)))
   return(complexity)
 }
+
+# use pbapply
+my.pbapply <- ifelse(require(pbapply, quietly = T), pbapply, apply)
