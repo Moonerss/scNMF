@@ -25,7 +25,7 @@ add_list_name <- function(list_obj) {
         cli::cli_alert_warning('There is no column name for element {.val {y}}, skip ...')
         x <- NULL
       } else {
-        if (any(grepl(y, names(x)))) {
+        if (any(grepl(y, colnames(x)))) {
           cli::cli_alert_info('The name contain element name {.val {y}}, skip ...')
         } else {
           colnames(x) <- paste0(y, '_', colnames(x))
