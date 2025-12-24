@@ -7,7 +7,7 @@
 nmf_programs(mat, rank = 2, method = "snmf/r", seed = 1, ...)
 }
 \arguments{
-\item{mat}{a properly matrix data as input for \code{\link[NMF]{nmf}}, you can get it through \code{\link[scNMF]{getDataMatrix}}.}
+\item{mat}{a properly matrix data as input for \code{\link[NMF]{nmf}}, you can get it through \code{\link[scNMF]{pre_filter}}.}
 
 \item{rank}{specification of the factorization rank. Here it must be a single numeric value.}
 

@@ -7,7 +7,7 @@
 select_program_features(nmf_programs_list, top_n = 50)
 }
 \arguments{
-\item{nmf_programs_list}{a list of object get use \code{nmf_programs()}}
+\item{nmf_programs_list}{a list of object get use \code{nmf_programs}}
 
 \item{top_n}{the number of features to select from each NMF program by importance}
 }

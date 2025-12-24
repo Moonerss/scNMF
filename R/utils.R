@@ -1,3 +1,10 @@
+#'
+cli_alert_info_with_time <- function(text, ...) {
+  full_test <- paste(Sys.time(), text)
+  cli::cli_alert_info(full_test, ...)
+}
+
+
 ## add name for list element
 add_list_name <- function(list_obj) {
   if (is.null(names(list_obj))) {
@@ -41,24 +48,6 @@ add_list_name <- function(list_obj) {
   return(res)
 }
 
-# filter low expr data
-filter_genes <- function(mat, min_expr = 3.5, min_pct = 0.2) {
-  mat[apply(mat, 1, function(x) length(which(x > min_expr)) > ncol(mat)*min_pct),]
-}
-
-# scale matrix
-scale_data <- function(mat, center = TRUE, scale = FALSE, non_negative = TRUE) {
-  #Center and rescale
-  mat <- t(scale(Matrix::t(mat), center=center, scale=scale))
-  #check scaling with rowsum=0 (gives NaN)
-  if (scale) {
-    mat[is.na(mat)] <- 0
-  }
-  if (non_negative) {
-    mat[mat<0] <- 0
-  }
-  return(mat)
-}
 
 #Calculate Jaccard Index
 jaccardIndex <- function(a, b) {

@@ -15,13 +15,18 @@ License: CC0
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 Imports: 
     cli,
+    ggplot2,
     Matrix,
     NMF,
     purrr,
+    reshape2,
+    rlang,
+    scales,
     Seurat,
+    SeuratObject,
     stringr,
     viridis
 Depends: 
